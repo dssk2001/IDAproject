@@ -1,0 +1,4 @@
+Note:
+
+new.csv is the file obtained when train_x_imputed is preprocessed by dropping ID column
+and one-hot encoding Loan type and Occupation Type.

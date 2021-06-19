@@ -1,0 +1,81 @@
+---
+output:
+  pdf_document: default
+  html_document: default
+---
+
+MICE IMPUTATIONS FOR MISSING DATA IN R
+
+Team Members - ME18B148, ME18B135, ME18B136, ME18B111, ME18B162, ME18B170
+
+The following is the R code used for MICE imputations for the given dataset.
+
+First importing the given dataset and respective labels.
+```{r}
+library(readxl)
+train_x <- read.csv("D:/Sem 5/IDA project dataset/train_x.csv", na.strings = c(""," ","NA"))
+train_y <- read.csv("D:/Sem 5/IDA project dataset/train_y.csv", na.strings = c(""," ","NA"))
+
+```
+
+Now merging both of these into one dataframe.
+```{r}
+data <- train_x
+data$Label <- train_y$Label
+```
+
+Let us plot the missingness map to interpret the missing data. Amelia package is generally used to plot the missingness map.
+```{r}
+library(Amelia)
+missmap(data[-1], col = c('grey', 'steelblue'), y.cex=0.5, x.cex=0.8)
+```
+
+Now let us use the mice package to impute the missing data. We have used pmm method for Numeric Variables and cart method for Categorical Variables.
+```{r}
+library(mice)
+imp.data <- mice(data, m=1, method = c("", "pmm", "pmm", "cart", "cart", "cart", "pmm", "pmm", "pmm", "pmm", "pmm", "cart"), printFlag = FALSE)
+```
+
+Storing the imputed data.
+```{r}
+data <- complete(imp.data)
+```
+
+In the previous line of code, all features were not imputed, this might be a restriction of mice package. So we had to impute the 'Expense' column soley in the below lines of code.
+```{r}
+imp.data2 <- mice(data, m=1, method = c("", "pmm", "", "", "", "", "", "", "", "", "", ""), printFlag = FALSE)
+```
+
+Finally storing the completely imputed data.
+```{r}
+data <- complete(imp.data2)
+```
+
+Let us check for any missing data after imputations.
+```{r}
+sort(sapply(data, function(x) {sum(is.na(x))}), decreasing = TRUE)
+```
+As you can see there is no data missing and all missing data has been imputed.
+
+Plotting Feature vs Feature to interpret imputed data vs existing data. The imputed data is almost similar to the existing data, So we can say that MICE imputations worked well.
+```{r}
+xyplot(imp.data, Score1 ~ Score2)
+xyplot(imp.data, Score1 ~ Score3)
+xyplot(imp.data, Score1 ~ Score4)
+xyplot(imp.data, Score1 ~ Score5)
+xyplot(imp.data2, Expense ~ Income)
+```
+
+Splitting the data into X and Y sets.
+```{r}
+train_y$Label <- data$Label
+train_x <- data[, 1:11]
+```
+
+Finally exporting the data to csv files, and then trained using python.
+```{r}
+write.csv(train_x, "D:/Sem 5/IDA project dataset/train_x_imputed.csv", row.names = FALSE )
+write.csv(train_y, "D:/Sem 5/IDA project dataset/train_y_imputed.csv", row.names = FALSE )
+
+```
+
